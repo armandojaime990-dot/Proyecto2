@@ -12,6 +12,10 @@ DETAIL="${3:-}"
 ORG="${O2_ORG:-default}"
 STREAM="${O2_STREAM:-cicd_pipeline}"
 
+# Limpia espacios/saltos de linea que se cuelan al pegar los Secrets
+O2_URL=$(printf '%s' "${O2_URL:-}" | tr -d '[:space:]')
+O2_USER=$(printf '%s' "${O2_USER:-}" | tr -d '[:space:]')
+
 if [ -z "${O2_URL:-}" ]; then
   echo "::warning::O2_URL no configurado; no se envia el evento a OpenObserve"
   exit 0

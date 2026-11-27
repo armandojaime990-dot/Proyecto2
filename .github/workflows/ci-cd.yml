@@ -119,14 +119,28 @@ jobs:
     if: success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      EC2_HOST: ${{ secrets.EC2_HOST }}
-      EC2_USER: ${{ secrets.EC2_USER }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Configurar llave SSH
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
         run: |
+          # Limpia espacios/saltos de linea y "http://" que se cuelan al pegar los Secrets
+          HOST=$(printf '%s' "$EC2_HOST" | tr -d '[:space:]')
+          HOST=${HOST#http://}; HOST=${HOST#https://}; HOST=${HOST%%/*}
+          USR=$(printf '%s' "$EC2_USER" | tr -d '[:space:]')
+          if ! [[ "$HOST" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::El Secret EC2_HOST debe ser solo la IP (ej. 18.116.130.245). Tiene ${#HOST} caracteres."
+            exit 1
+          fi
+          if [ "$USR" != "ubuntu" ]; then
+            echo "::warning::El Secret EC2_USER no es 'ubuntu' (tiene ${#USR} caracteres). Revisalo si falla la conexion."
+          fi
+          echo "EC2_HOST=$HOST" >> "$GITHUB_ENV"
+          echo "EC2_USER=$USR" >> "$GITHUB_ENV"
+          EC2_HOST="$HOST"
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2.pem
           chmod 600 ~/.ssh/ec2.pem
