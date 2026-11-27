@@ -1,0 +1,28 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f3f5f9; color: #1f2937; }
+h1 { margin: 0 0 .5rem; font-size: 1.5rem; }
+.muted { color: #6b7280; font-size: .9rem; }
+.card { background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.07); padding: 1.5rem; }
+label { display: block; margin-top: .9rem; font-weight: 600; font-size: .9rem; }
+input, select { width: 100%; padding: .6rem .7rem; margin-top: .3rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; }
+.field-error { color: #b91c1c; display: block; min-height: 1em; font-size: .8rem; }
+.btn { padding: .5rem .9rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; cursor: pointer; font-size: .9rem; }
+.btn.primary { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+.btn.danger { background: #fff; border-color: #dc2626; color: #dc2626; }
+.btn:disabled { opacity: .6; }
+.alert { margin-top: 1rem; padding: .7rem; border-radius: 6px; background: #fee2e2; color: #991b1b; }
+.alert.success { background: #dcfce7; color: #166534; }
+.login-page { display: grid; place-items: center; min-height: 100vh; }
+.login-card { width: min(380px, 92vw); }
+.login-card button[type=submit] { width: 100%; margin-top: 1.2rem; padding: .7rem; }
+.topbar { display: flex; justify-content: space-between; align-items: center; padding: .8rem 1.5rem; background: #1e293b; color: #fff; }
+.topbar span { margin-right: .8rem; }
+.container { max-width: 1000px; margin: 1.5rem auto; padding: 0 1rem; }
+.toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+table { width: 100%; border-collapse: collapse; padding: 0; overflow: hidden; }
+th, td { text-align: left; padding: .7rem 1rem; border-bottom: 1px solid #e5e7eb; }
+th { background: #f8fafc; font-size: .85rem; text-transform: uppercase; color: #475569; }
+.modal { position: fixed; inset: 0; background: rgba(15,23,42,.45); display: grid; place-items: center; }
+.modal[hidden] { display: none; }
+.modal .card { width: min(440px, 92vw); }
+.actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: 1.2rem; }

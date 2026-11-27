@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usuarios | Gestión de Usuarios</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <strong>Gestión de Usuarios</strong>
+    <div>
+      <span data-testid="current-user"></span>
+      <button class="btn" data-testid="logout">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="toolbar">
+      <h1 data-testid="users-title">Usuarios</h1>
+      <button class="btn primary" data-testid="new-user">+ Nuevo usuario</button>
+    </div>
+    <div class="alert success" role="status" data-testid="flash" hidden></div>
+
+    <table class="card">
+      <thead>
+        <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Acciones</th></tr>
+      </thead>
+      <tbody data-testid="users-tbody"></tbody>
+    </table>
+  </main>
+
+  <!-- Modal crear / editar -->
+  <div class="modal" data-testid="user-modal" hidden>
+    <form class="card" id="user-form" novalidate>
+      <h2 data-testid="modal-title">Nuevo usuario</h2>
+      <input type="hidden" name="userId" />
+      <label for="name">Nombre</label>
+      <input id="name" name="name" data-testid="field-name" />
+      <small class="field-error" data-testid="error-name"></small>
+
+      <label for="u-email">Email</label>
+      <input id="u-email" name="email" type="email" data-testid="field-email" />
+      <small class="field-error" data-testid="error-email"></small>
+
+      <label for="u-password">Contraseña <span class="muted" data-testid="pwd-hint"></span></label>
+      <input id="u-password" name="password" type="password" data-testid="field-password" />
+      <small class="field-error" data-testid="error-password"></small>
+
+      <label for="role">Rol</label>
+      <select id="role" name="role" data-testid="field-role">
+        <option value="user">user</option>
+        <option value="admin">admin</option>
+      </select>
+      <small class="field-error" data-testid="error-role"></small>
+
+      <div class="alert" role="alert" data-testid="form-error" hidden></div>
+      <div class="actions">
+        <button type="button" class="btn" data-testid="cancel">Cancelar</button>
+        <button type="submit" class="btn primary" data-testid="save">Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Confirmacion de borrado (sin dialogos nativos del navegador) -->
+  <div class="modal" data-testid="confirm-modal" hidden>
+    <div class="card">
+      <p data-testid="confirm-text"></p>
+      <div class="actions">
+        <button class="btn" data-testid="confirm-no">Cancelar</button>
+        <button class="btn danger" data-testid="confirm-yes">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/validation.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/users.js"></script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+# Stack completo.
+#  - CI (GitHub Actions):  docker compose up -d --build db backend frontend
+#  - EC2 (produccion):     docker compose --profile monitoring up -d --build
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-usersdb}
+      POSTGRES_USER: ${POSTGRES_USER:-users}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-users_pass}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-users}:${POSTGRES_PASSWORD:-users_pass}@db:5432/${POSTGRES_DB:-usersdb}
+      JWT_SECRET: ${JWT_SECRET:-cambia-este-secreto-por-uno-largo-de-32-caracteres}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@demo.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin123!}
+      APP_VERSION: ${APP_VERSION:-dev}
+      APP_ENV: ${APP_ENV:-production}
+      # OpenTelemetry -> OpenObserve
+      OTEL_ENABLED: ${OTEL_ENABLED:-false}
+      OTEL_SERVICE_NAME: users-backend
+      O2_OTLP_ENDPOINT: http://openobserve:5080/api/${O2_ORG:-default}
+      O2_USER: ${O2_USER:-}
+      O2_PASSWORD: ${O2_PASSWORD:-}
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${WEB_PORT:-80}:80"
+
+  openobserve:
+    image: public.ecr.aws/zinclabs/openobserve:latest
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    environment:
+      ZO_ROOT_USER_EMAIL: ${O2_USER:-}
+      ZO_ROOT_USER_PASSWORD: ${O2_PASSWORD:-}
+      ZO_DATA_DIR: /data
+    ports:
+      - "5080:5080"
+    volumes:
+      - o2data:/data
+
+  host-agent:
+    build: ./host-agent
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    # red del host: para medir el ancho de banda real de la instancia EC2
+    network_mode: host
+    depends_on:
+      - openobserve
+    environment:
+      O2_URL: http://localhost:5080
+      O2_ORG: ${O2_ORG:-default}
+      O2_STREAM: ec2_host_metrics
+      O2_USER: ${O2_USER:-}
+      O2_PASSWORD: ${O2_PASSWORD:-}
+      INTERVAL: "10"
+      HOST_NAME: ${HOST_NAME:-ec2-app}
+    volumes:
+      - /:/hostfs:ro
+
+volumes:
+  pgdata:
+  o2data:

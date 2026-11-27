@@ -1,0 +1,16 @@
+{
+  "name": "users-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Frontend (HTML/JS) del sistema de usuarios - pruebas unitarias con Jest",
+  "scripts": {
+    "test": "jest --ci"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/tests/**/*.test.js"]
+  }
+}

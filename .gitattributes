@@ -1,0 +1,3 @@
+# Fuerza finales de linea LF (Linux) para que los scripts funcionen en la EC2
+* text=auto eol=lf
+*.pem binary
