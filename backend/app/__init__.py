@@ -1,4 +1,5 @@
 """Fabrica de la aplicacion Flask."""
+import datetime as dt
 import logging
 import os
 import time
@@ -50,7 +51,7 @@ def create_app(config: dict | None = None) -> Flask:
         span.set_status(trace.Status(trace.StatusCode.ERROR, str(exc)))
         log.exception(
             "Excepcion no controlada",
-            extra={"event": "unhandled_exception", "http_route": _route(), "error_type": type(exc).__name__},
+            extra={"event": "unhandled_exception", "endpoint": _route(), "method": request.method, "error_type": type(exc).__name__},
         )
         return jsonify(error="Error interno del servidor"), 500
 
@@ -84,8 +85,8 @@ def _register_metrics(app: Flask):
     def _record(response):
         elapsed_ms = (time.perf_counter() - g.get("_t0", time.perf_counter())) * 1000
         attrs = {
-            "http_route": _route(),
-            "http_method": request.method,
+            "endpoint": _route(),
+            "method": request.method,
             "status_code": response.status_code,
         }
         requests_counter.add(1, attrs)
@@ -96,15 +97,19 @@ def _register_metrics(app: Flask):
         level = logging.ERROR if response.status_code >= 500 else (
             logging.WARNING if response.status_code >= 400 else logging.INFO
         )
+        # Formato JSON pedido: timestamp, endpoint, method (GET/POST/PUT/DELETE),
+        # status_code y response_time_ms (tiempo de respuesta).
         log.log(
             level,
             f"{request.method} {request.path} -> {response.status_code}",
             extra={
                 "event": "http_request",
-                "http_route": attrs["http_route"],
-                "http_method": request.method,
+                "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+                "endpoint": attrs["endpoint"],
+                "method": request.method,
                 "status_code": response.status_code,
-                "duration_ms": round(elapsed_ms, 2),
+                "response_time_ms": round(elapsed_ms, 2),
+                "path": request.path,
                 "client_ip": request.headers.get("X-Real-IP", request.remote_addr),
             },
         )

@@ -154,7 +154,7 @@ En OpenObserve → **Streams** deberías ver:
 
 | Stream | Tipo | Qué contiene |
 |---|---|---|
-| `default` | Logs | Logs estructurados de la app (`event`, `http_route`, `status_code`, `duration_ms`…) |
+| `default` | Logs | Logs estructurados de la app (`event`, `endpoint`, `status_code`, `response_time_ms`…) |
 | `default` | Traces | Trazas: petición HTTP (Flask) → consultas SQL (PostgreSQL) |
 | `app_http_requests`, `app_http_errors`, `app_http_request_duration_ms…` | Metrics | Métricas OTel por endpoint y statusCode |
 | `cicd_pipeline` | Logs | Eventos del pipeline |
@@ -192,27 +192,27 @@ FROM "cicd_pipeline" GROUP BY event_type, status
 
 **Peticiones por segundo por endpoint**
 ```sql
-SELECT histogram(_timestamp, '1 minute') AS x_axis_1, http_route,
+SELECT histogram(_timestamp, '1 minute') AS x_axis_1, endpoint,
        count(*) / 60.0 AS req_por_seg
 FROM "default" WHERE event = 'http_request'
-GROUP BY x_axis_1, http_route ORDER BY x_axis_1
+GROUP BY x_axis_1, endpoint ORDER BY x_axis_1
 ```
 
 **Latencia promedio y p95 (ms) por endpoint**
 ```sql
-SELECT histogram(_timestamp, '1 minute') AS x_axis_1, http_route,
-       avg(duration_ms) AS latencia_prom_ms,
-       approx_percentile_cont(duration_ms, 0.95) AS latencia_p95_ms
+SELECT histogram(_timestamp, '1 minute') AS x_axis_1, endpoint,
+       avg(response_time_ms) AS latencia_prom_ms,
+       approx_percentile_cont(response_time_ms, 0.95) AS latencia_p95_ms
 FROM "default" WHERE event = 'http_request'
-GROUP BY x_axis_1, http_route ORDER BY x_axis_1
+GROUP BY x_axis_1, endpoint ORDER BY x_axis_1
 ```
 
 **Tasa de error HTTP (%) por endpoint**
 ```sql
-SELECT histogram(_timestamp, '1 minute') AS x_axis_1, http_route,
+SELECT histogram(_timestamp, '1 minute') AS x_axis_1, endpoint,
        sum(CASE WHEN status_code >= 400 THEN 1 ELSE 0 END) * 100.0 / count(*) AS tasa_error_pct
 FROM "default" WHERE event = 'http_request'
-GROUP BY x_axis_1, http_route ORDER BY x_axis_1
+GROUP BY x_axis_1, endpoint ORDER BY x_axis_1
 ```
 
 **Barras: Peticiones por statusCode**
@@ -223,14 +223,14 @@ FROM "default" WHERE event = 'http_request' GROUP BY status_code
 
 **Tabla: Excepciones y errores recientes**
 ```sql
-SELECT _timestamp, severity, body, http_route, status_code
+SELECT _timestamp, severity, body, endpoint, status_code
 FROM "default" WHERE status_code >= 500 OR event = 'unhandled_exception'
 ORDER BY _timestamp DESC
 ```
 
 **Panel con métricas OTel (stream de tipo Metrics, modo PromQL)**
 ```
-sum by (http_route, status_code) (rate(app_http_requests[1m]))
+sum by (endpoint, status_code) (rate(app_http_requests[1m]))
 ```
 
 **Panel de trazas (stream `default` de tipo Traces).** Elige el tipo de stream *Traces* y una tabla con
